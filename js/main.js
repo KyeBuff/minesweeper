@@ -1,6 +1,7 @@
 let columns = 10, rows = 10, mines = 5;
 
 // Board state
+// 2D array which allows for easier tracking of mines from a given cell location
 let board = [];
 
 function generateMines() {
@@ -76,21 +77,27 @@ function init() {
 
 }
 
-init();
-
 // Render functionality
 
 function render() {
 	const grid = document.getElementById("grid");
+	grid.innerHTML = "";
 
 	for(let y=0; y<rows; y++) {
+
 		const row = document.createElement('div');
 		row.className = "row"
+
 		for(let x=0; x<columns; x++) {
+
 			const cell = document.createElement('div');
+
 			cell.textContent = board[y][x] === -1 ? "X" : board[y][x];
+
 			cell.style.width = (100 / columns) + "%";
+
 			cell.className = "cell";
+
 			row.append(cell);
 		}
 		grid.append(row);
@@ -98,4 +105,24 @@ function render() {
 
 }
 
-render();
+// Event listener
+
+document.getElementById('form').addEventListener("submit", (e) => {
+
+	e.preventDefault();
+
+	const newCols = document.getElementById("cols").value,
+	newRows = document.getElementById("rows").value,
+	newMines = document.getElementById("mines").value;
+	
+	columns = +newCols;
+	rows = +newRows;
+	mines = +newMines;
+	board = [];
+
+	init();
+	render();
+
+	console.log(board);
+
+});
