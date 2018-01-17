@@ -1,10 +1,9 @@
 let columns = 20, rows = 20, mines = 50;
 
 // Board state
-// 2D array which allows for easier tracking of mines from a given cell location
-// L1 - Board
-// L2 - Arrays representing rows, elements represent the columns
 let board = [];
+
+const mineCell = -1;
 
 function generateMines() {
 	for(let mine=0; mine < mines; mine++) {
@@ -14,10 +13,10 @@ function generateMines() {
 		// Set x, y values which match indices in rows and columns
 			x = Math.floor(Math.random() * columns),
 			y = Math.floor(Math.random() * rows);
-		} while (board[y][x] === -1);
-		// -1 represents a mine
+		} while (board[y][x] === mineCell);
 		// if current cell is a mine regenerate x,y
-		board[y][x] = -1;
+		// else set cell to mine
+		board[y][x] = mineCell;
 	}
 }
 
@@ -25,33 +24,30 @@ function fillBoard() {
 	// Fill board with empty array columns
 	for(let y=0; y<rows; y++) {
 		board.push([]);
-		//Push default value 0
+		//Push default value 0 into cols
 		for(let x=0; x<columns; x++) {
 			board[y].push(0);
 		}
 	}
 }
 
-function inBounds(x, y) {
+function cellWithinBounds(x, y) {
 	//A cell is within the bounds if it is >= 0 or less than the grids rows/columns
 	return x >= 0 && y >= 0 && x < columns && y < rows;
 }
 
 function countNeighbourMines() {
-	// Need to check cells that are within 1 indices +/-
-	//dx/dy = difference on both axis
+	//Iterate over all cells, skipping any mines
 	for(let y=0; y<rows; y++) {
 		for(let x=0; x<columns; x++) {
-			//If this is a mine don't count
-			if(board[y][x] === -1) {
+			if(board[y][x] === mineCell) {
 				continue;
 			} 
-			let count = 0;
 			// Count # of mines around the cell (y,x)
-			// These additonal loops allow us to look at the direct cells around the current mine by checking all cells that exist within 1 index around on (y,x)
+			let count = 0;
+			// Additonal loops allow us to look at the direct cells around the current mine by checking all cells that exist within 1 index on y,x axis
 
 			/*
-
 				Visualisation of dx, dy for any given cell. Takes the y,x values of the current cell and traverses
 
 				***********************
@@ -61,7 +57,6 @@ function countNeighbourMines() {
 				***********************
 				* -1  1 * 0  1 * 1  1 *
 				***********************
-
 			*/
 
 			for(let dy=-1; dy<=1; dy++) {
@@ -70,16 +65,17 @@ function countNeighbourMines() {
 					if(dx === 0 && dy === 0) {
 						continue;
 					}
+					// yy/xx is the current cell index plus the difference variable in the iterators
 					let yy = y + dy,
 							xx = x + dx;
-					if(inBounds(xx, yy)) {
-						if(board[yy][xx] === -1) {
+					if(cellWithinBounds(xx, yy)) {
+						if(board[yy][xx] === mineCell) {
 							count++;
 						}
 					}
 				}		
 			}
-			board[y][x] = board[y][x] === -1 ? board[y][x] : count;
+			board[y][x] = count;
 		}
 	}	
 }
@@ -100,6 +96,8 @@ function init() {
 
 function render() {
 	const grid = document.getElementById("grid");
+
+	//Empty to view before re-render
 	grid.innerHTML = "";
 
 	for(let y=0; y<rows; y++) {
@@ -114,7 +112,7 @@ function render() {
 			cell.className = "cell";
 
 			switch(board[y][x]) {
-				case -1: 
+				case mineCell: 
 					cell.classList.add("cell-mine");
 					break;
 				case 1: 
@@ -150,8 +148,6 @@ function render() {
 				cell.textContent = board[y][x];
 			} 
 
-			// cell.style.width = (100 / columns) + "%";
-
 			row.append(cell);
 		}
 		grid.append(row);
@@ -172,10 +168,11 @@ document.getElementById('form').addEventListener("submit", (e) => {
 	columns = +newCols;
 	rows = +newRows;
 	mines = +newMines;
+
+	//empty existing board before re-render
 	board = [];
 
 	init();
-	render();
 
 });
 
